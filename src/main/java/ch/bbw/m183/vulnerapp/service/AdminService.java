@@ -34,7 +34,7 @@ public class AdminService {
 	@EventListener(ContextRefreshedEvent.class)
 	public void loadTestUsers() {
 		Stream.of(new UserEntity().setUsername("admin").setFullname("Super Admin").setPassword("super5ecret"),
-						new UserEntity().setUsername("fuu").setFullname("Johanna Doe").setPassword("bar"))
+						new UserEntity().setUsername("fuu").setFullname("Johanna Doe").setPassword("{noop}bar"))
 				.forEach(this::createUser);
 	}
 }
