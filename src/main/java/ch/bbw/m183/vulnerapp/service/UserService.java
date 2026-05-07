@@ -1,5 +1,6 @@
 package ch.bbw.m183.vulnerapp.service;
 
+import ch.bbw.m183.vulnerapp.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 
 import ch.bbw.m183.vulnerapp.datamodel.UserEntity;
@@ -20,6 +21,8 @@ public class UserService {
 
 	private final EntityManager entityManager;
 
+	private final UserRepository userRepository;
+
 	public UserEntity whoami(String username, String password) {
 		// native queries are more performant!!1 :P
 		var user = (UserEntity) entityManager.createNativeQuery("SELECT * from users where username='" + username + "'", UserEntity.class)
@@ -28,6 +31,11 @@ public class UserService {
 			return user;
 		}
 		throw new InvalidPasswordException("invalid password for user " + user.getUsername());
+	}
+
+	public UserEntity whoami(String username) {
+		// native queries are more performant!!1 :P
+		return userRepository.findById(username).orElseThrow();
 	}
 
 	@ResponseStatus(HttpStatus.UNAUTHORIZED)

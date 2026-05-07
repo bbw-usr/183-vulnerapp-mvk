@@ -12,11 +12,37 @@ let devToast = new bootstrap.Toast(
     { delay: 10000 }
 );
 
+function getCsrfToken() {
+  const match = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("XSRF-TOKEN="));
+
+  return match ? decodeURIComponent(match.split("=")[1]) : null;
+}
+
+async function csrfFetch(url, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  const unsafeMethods = ["POST", "PUT", "PATCH", "DELETE"];
+
+  if (unsafeMethods.includes(method)) {
+    const token = getCsrfToken();
+
+    if (token) {
+      options.headers = {
+        ...options.headers,
+        "X-XSRF-TOKEN": token,
+      };
+    }
+  }
+
+  return fetch(url, options);
+}
+
 function onLoginSubmit(event) {
   const username = event.target[0].value;
   const password = event.target[1].value;
   event.preventDefault();
-  fetch("/api/user/fakelogin", {
+  csrfFetch("/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -38,7 +64,7 @@ function onLogoutSubmit(event) {
 function onBlogSubmit(event) {
   const data = {"title": event.target[0].value, "body": event.target[1].value};
   event.preventDefault();
-  fetch("/api/blog", {
+  csrfFetch("/api/blog", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -60,7 +86,7 @@ function loginCheck() {
 }
 
 function fetchBlogs() {
-  fetch("/api/blog")
+  csrfFetch("/api/blog")
       .then(filterOk)
       .then(response => response.json())
       .then(page => renderBlogs(page.content));
@@ -70,9 +96,19 @@ function renderBlogs(blogs) {
   const blogDiv = document.getElementById("blog-container");
   blogDiv.innerHTML = "" // clear
   for (const blog of blogs) {
-    blogDiv.innerHTML += `<h2>${blog.title}</h2>
-            <p>${blog.createdAt}</p>
-            <p>${blog.body}</p>`;
+    const article = document.createElement("article");
+
+    const title = document.createElement("h2");
+    title.textContent = blog.title;
+
+    const date = document.createElement("p");
+    date.textContent = blog.createdAt;
+
+    const body = document.createElement("p");
+    body.textContent = blog.body;
+
+    article.append(title, date, body);
+    blogDiv.appendChild(article);
   }
 }
 
