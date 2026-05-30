@@ -9,6 +9,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,8 +34,11 @@ public class AdminService {
 
 	@EventListener(ContextRefreshedEvent.class)
 	public void loadTestUsers() {
-		Stream.of(new UserEntity().setUsername("admin").setFullname("Super Admin").setPassword("{noop}super5ecret"),
-						new UserEntity().setUsername("fuu").setFullname("Johanna Doe").setPassword("{noop}bar"))
-				.forEach(this::createUser);
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		Stream.of(
+						new UserEntity().setUsername("admin").setFullname("Super Admin").setPassword("{bcrypt}"+encoder.encode("super5ecret")),
+						new UserEntity().setUsername("fuu").setFullname("Johanna Doe").setPassword("{bcrypt}"+encoder.encode("bar"))
+				)
+				.forEach(userRepository::save);
 	}
 }
