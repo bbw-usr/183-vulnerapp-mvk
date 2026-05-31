@@ -1,2 +1,2 @@
 User-agent: *
-Disallow: /api/admin123/
+Disallow: /api/admin/
